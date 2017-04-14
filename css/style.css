@@ -1,0 +1,203 @@
+/*
+Dark Blue  : #3b5998
+Light Blue : #6d84b4
+Gray       : #e9e9e9
+ */
+
+.letter-guess {
+	border: 1px solid #3b5998;
+	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0.0, #6d84b4), color-stop(0.5, white), color-stop(1.0, #6d84b4));
+	background-image: -moz-linear-gradient(top, #6d84b4, white 50%, #6d84b4);
+	text-align: center;
+	font: xx-large "Arial Black";
+	width: 50px;
+	height: 50px;
+	text-transform: uppercase;
+}
+
+.credits {
+	width: 20px;
+	height: 20px;
+	float: left;
+}
+
+.creditsbutton {
+	height: 25px;
+	width: 110px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+}
+
+.creditslabel {
+	padding-top: 2px;
+}
+
+.tiny {
+	font: bold large/1 "Arial Black";
+	width: 20px;
+	height: 20px;
+	text-transform: uppercase;
+}
+
+#buttons {
+	width: 756px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.center {
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+	align: center;
+}
+
+.tiny-button {
+	font-size: small;
+	text-decoration: underline;
+	padding-left: 10px;
+	padding-right: 10px;
+	color: #3b5998;
+}
+
+.button {
+	height: 25px;
+	width: 100px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+}
+
+.ui {
+	background-image: -webkit-gradient(linear, left top, right bottom, color-stop(0.0, #3b5998), color-stop(1.0, #6d84b4));
+	background-image: -moz-linear-gradient(left, #3b5998, #6d84b4);
+	height: 25px;
+	color: white;
+	font-weight: bold;
+	border: 1px solid #000;
+	font-family: Verdana;
+}
+
+.solution {
+	border: 1px solid red;
+	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0.0, orange), color-stop(0.5, yellow), color-stop(1.0, orange));
+	background-image: -moz-linear-gradient(top, orange, yellow 50%, orange);
+	text-align: center;
+}
+
+#guess {
+	height: 55px;
+}
+
+.score {
+	width: 100px;
+	float: left;
+	clear: none;
+	margin-left: 10px;
+}
+
+#letters {
+	height: 55px;
+}
+
+.timer {
+	font-family: Verdana;
+	height: 55px;
+	padding-right: 20px;
+}
+
+.canvas {
+	width: 756px;
+	background-image: -webkit-gradient(radial, 50% 300, 200, 50% 300, 400, from(white), to(#e9e9e9));
+	background-image: -moz-radial-gradient(center 45deg, circle, white 0%, #e9e9e9 100%);
+	border-style: solid;
+	border-width: 1px;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	padding:0;
+	margin:0;
+}
+
+.clingy {
+	margin:0;
+	padding:0;
+}
+
+/*
+ * jQuery UI Progressbar 1.8.10
+ *
+ * Copyright 2011, AUTHORS.txt (http://jqueryui.com/about)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * http://docs.jquery.com/UI/Progressbar#theming
+ */
+.ui-progressbar {
+	margin-top: 10px;
+	margin-left: 10px;
+	margin-right: 10px;
+	height: 10px;
+	text-align: left;
+	border: 1px solid black;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	background-image: -webkit-gradient(linear, left top, right top, color-stop(0.0, red), color-stop(1.0, yellow));
+}
+
+.ui-progressbar .ui-progressbar-value {
+	margin: -1px;
+	height: 100%;
+	border: 1px solid black;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+	color: #ffffff;
+	font-weight: bold;
+	background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0.0, #6d84b4), color-stop(0.5, white), color-stop(1.0, #6d84b4));
+	background-image: -moz-linear-gradient(top, #6d84b4, white 50%, #6d84b4);
+}
+
+.ui-widget {
+	font-family: Verdana, Trebuchet MS, Tahoma, Arial, sans-serif;
+	font-size: 1.1em;
+}
+
+.ui-widget .ui-widget {
+	font-size: 1em;
+}
+
+/* Overlays */
+.ui-widget-overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+.guess_button {
+	height: 30px;
+}
+
+.ui-widget-header {
+	border: 1px solid black;
+	background-image: -webkit-gradient(linear, left top, right bottom, color-stop(0.0, #3b5998), color-stop(1.0, #6d84b4));
+	background-image: -moz-linear-gradient(left, #3b5998, #6d84b4);
+	color: #ffffff;
+	font-weight: bold;
+}
+
+.ui-corner-right {
+	/*
+	 * These are used for different left and right corners
+	 */
+}
+
+.ui-corner-left {
+	/*
+	 * These are used for different left and right corners
+	 */
+}

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  	<head>
+    	<title>Jumble</title>
+		<!-- stylesheets -->
+    	<link rel="stylesheet" type="text/css" href="css/style.css"/>
+		<link rel="stylesheet" type="text/css" href="css/jquery-ui-1.8.10.custom.css">
+
+		<!-- scripts -->
+		<script src="js/webtoolkit.md5.js"></script>
+		<script src="js/jquery-1.4.4.min.js"></script>
+		<script src="js/jquery-ui-1.8.10.custom.min.js"></script>
+		<script src="js/stopwatch.js"></script>
+		<script src="js/jumble.js"></script>
+    	<script>
+			var Jumble      = null;
+			var host        = document.location.hostname;
+			var letters     = null;
+			var string      = "";
+			var quess       = null;
+			var correct     = null;
+			var remaining   = null;
+			var letters_div = null;
+			var sounds      = null;
+			var score       = 0;
+			
+			var makeLetter = function(letter) {
+				td = document.createElement('td');
+				td.innerText = letter;
+				td.name = letter;
+				td.onclick = function(event) { append(this.name); };
+				td.setAttribute("class", "letter-guess");
+				return td;
+			}
+			
+			var insertWord = function(word, cls, el) {
+				tr = document.createElement('tr');
+				for (var i in word) {
+					td = document.createElement('td');
+					td.innerText = word[i];
+					td.setAttribute("class", cls);
+					tr.appendChild(td);
+				}
+				if (el == null) {
+					el = document.getElementById("correct" + word.length);					
+				}
+				el.insertBefore(tr, el.firstChild);
+			}
+			
+			var clearChildren = function(node) {
+				while(node.hasChildNodes()) {
+					node.removeChild(node.firstChild);
+				}
+			}
+			
+			var shuffle = function() {
+				var word = Jumble.game.letters;
+				var res = "";
+				while (word.length) {
+					var i = Math.floor(Math.random() * word.length);
+					res += word[i];
+					word = word.substr(0, i) + word.substr(i+1);
+				}
+				clearChildren(letters_div);
+				clearChildren(guess);
+				for (index in res) {
+					letters_div.appendChild(makeLetter(res[index]));
+				}
+			}
+
+			// These are the handlers that get called on events
+			var newGame = function(game) {
+				// Get letters
+				letters = Jumble.getLetters();
+				
+				clearChildren(letters_div);
+				clearChildren(guess);
+				clearChildren(correct);
+				
+				// Add tiles for the current letters
+				for (index in game.letters) {
+					letters_div.appendChild(makeLetter(game.letters[index]));
+				}
+				
+				// Add that div to hold the list of guessed words
+				for (i in game.count) {
+					if (game.count[i] > 0) {
+						td = document.createElement('td');
+						tb = document.createElement('table');
+						tb.id = "correct" + i;
+						td.appendChild(tb);
+						correct.appendChild(td);
+						// Add the blank words
+						spaces = "                    ".substr(0, i);
+						for (j = 0; j < game.count[i]; j++) {
+							insertWord(spaces, "letter-guess tiny");
+						}	
+					}
+				}
+				$("#progressbar").progressbar("value", 100);
+				document.getElementById('newgame').innerText = "Submit";
+			}
+			
+			var gotLanguages = function(languages) {
+				lang = document.getElementById('languages');
+				clearChildren(lang);
+				for (i in languages) {
+					opt = document.createElement('option');
+					opt.innerHTML = opt.value = languages[i];
+					lang.appendChild(opt);
+				}
+			}
+			
+			var gotRegistration = function(registration) {
+				lets = document.getElementById("letter-count");
+				clearChildren(lets);
+				for (i in registration.letters) {
+					opt = document.createElement('option');
+					opt.value = registration.letters[i];
+					opt.innerText = opt.value + " letters";
+					lets.appendChild(opt);
+				}
+			}
+			
+			var gotSolution = function(solution) {
+				for (index in solution.words) {
+					word = solution.words[index];
+					if (Jumble.correct.indexOf(word) == -1) {
+						insertWord(word, "solution tiny");
+						el = document.getElementById("correct" + word.length);
+						el.removeChild(el.lastChild);
+					}
+				}
+			}
+			
+			var guessedCorrect = function(word) {
+				insertWord(word, "letter-guess tiny");
+				el = document.getElementById("correct" + word.length);
+				el.removeChild(el.lastChild);
+				reset();
+				score += Math.pow(2, word.length - 3);
+				setScore(score);
+				//new Audio("sounds/correct.wav").play();
+			}
+			
+			var guessedWrong = function(word) {
+				//new Audio("sounds/wrong.wav").play();
+			}
+			
+			var timeUpdated = function(time) {
+				$("#progressbar").progressbar({ value: (time) });
+			}
+			
+			var gameEnd = function(win) {
+				clearChildren(guess);
+				clearChildren(letters_div);
+				if (win) {
+					word = "round";
+					document.getElementById('newgame').innerText = "Next Round";
+				} else {
+					word = "game";
+					document.getElementById('newgame').innerText = "New Game";
+				}
+				for (var index in word) {
+					letters_div.appendChild(makeLetter(word[index]));
+				}
+				score = Jumble.score;
+				setScore(score);
+				word = "over";
+				for (var index in word) {
+					guess.appendChild(makeLetter(word[index]));
+				}
+				string = "";
+				letters = {};
+			}
+			
+			var append = function(letter) {
+				if (letter in letters && letters[letter] > 0) {
+					string += letter;
+					letters[letter] -= 1;
+					for (index in letters_div.childNodes) {
+						if (letters_div.childNodes[index].name == letter) {
+							img = letters_div.removeChild(letters_div.childNodes[index]);
+							img.onclick = function(event) {};
+							guess.appendChild(img);
+							break;
+						}
+					}
+				}
+				document.getElementById('guess_button').disabled = false;
+			}
+			
+			var unappend = function() {
+				if (string.length > 0) {
+					// Get the letter unappended
+					letter = string[string.length - 1];
+					// Put it back
+					letters[letter] += 1;
+					string = string.substr(0, string.length - 1);
+					el = guess.removeChild(guess.lastChild);
+					el.onclick = function(event) { append(this.name); };
+					letters_div.appendChild(el);	
+				}
+				if (string.length == 0) {
+					document.getElementById('guess_button').disabled = false;
+				}
+			}
+			
+			var reset = function() {
+				while (guess.hasChildNodes()) {
+					img = guess.removeChild(guess.firstChild);
+					img.onclick = function(event) { append(this.name); };
+					letters_div.appendChild(img);
+				}
+				string = "";
+				if (Jumble.game) {
+					letters = Jumble.getLetters();					
+				}
+				document.getElementById('guess_button').diabled = true;
+			}
+			
+			var unsupported = function() {
+				$("#unsupported").dialog("open");
+			}
+			
+			var error = function(err) {
+				if ("message" in err) {
+					document.getElementById("error_message").innerText = err.message;
+					$("#error").dialog("open");
+				}
+			}
+			
+			var setScore = function(score) {
+				el = document.getElementById('score');
+				clearChildren(el);
+				insertWord(String(score), "solution tiny", el);
+			}
+			
+			window.onload = function() {
+				Jumble = new jumble(host + ":443", true);
+				// Set the callback handlers
+				Jumble.newGame        = newGame;
+				Jumble.guessedCorrect = guessedCorrect;
+				Jumble.guessedWrong   = guessedWrong;
+				Jumble.guessed        = reset;
+				Jumble.timeUpdated    = timeUpdated;
+				Jumble.gameEnd        = gameEnd;
+				Jumble.gotSolution    = gotSolution;
+				Jumble.unsupported    = unsupported;
+				Jumble.errorReceived  = error;
+				// Jumble.solutionReceived
+				
+				guess       = document.getElementById("guess");
+				remaining   = document.getElementById("remaining");
+				letters_div = document.getElementById("letters");
+				correct     = document.getElementById("correct");
+				
+				document.body.onkeydown = function(e) {
+					if (e.keyCode == 8) {
+						unappend();
+						e.preventDefault();
+					}
+				}
+				
+				document.body.onkeypress = function(e) {
+				//document.getElementById("game").addEventListener('keypress', function(e) {
+					if (e.keyCode == 13) {
+						// Enter
+						Jumble.guess(string);
+					} else if (e.keyCode == 8) {
+						// Backspace
+						unappend();
+					} else if (e.keyCode == 32) {
+						// Spacebar
+						shuffle();
+					} else {
+						// We only want valid characters
+						c = String.fromCharCode(e.which).toLowerCase().replace(/\W+/, "");
+						if (c.length > 0) {
+							append(c);
+						} else {
+							window.console.log(e.keyChar + ' pressed.');
+						}
+					}
+					e.preventDefault();
+				};
+								
+				document.getElementById("newgame").onclick = function(event) {
+					if (Jumble.game) {
+						Jumble.submitGame();
+					} else {
+						lang = document.getElementById("language").value;
+						len  = document.getElementById("letter-count").value;
+						Jumble.requestNewGame(lang, len);	
+					}
+				}
+				
+				document.getElementById("guess_button").onclick = function(event) {
+					Jumble.guess(string);
+				}
+				
+				document.getElementById("upgrade").onclick = function(event) {
+					Jumble.upgrade();
+				}
+				
+				$("#progressbar").progressbar({ value: 50 });
+				
+				document.getElementById("submit_report").onclick = function(event) {
+					msg = document.getElementById("message").value;
+					Jumble.reportError(msg);
+					$("#bug").dialog("close");
+				}
+				
+				$("#unsupported").dialog({autoOpen: false});
+				$("#about").dialog({autoOpen: false});
+				$("#bug").dialog({autoOpen: false});
+				$("#error").dialog({autoOpen: false});
+				
+				document.getElementById("about_button").onclick = function(event) {
+					$("#about").dialog("open");
+				}
+				
+				document.getElementById("bug_report").onclick = function(event) {
+					$("#bug").dialog("open");
+				}
+				
+				setScore(0);
+      		};
+    	</script>
+  	</head>
+	<body class='clingy'>
+		<div class='canvas'>
+			<div id="topbar">
+				<div id="buttons" class="center">
+					<div class="score">
+						<table id='score'>
+						</table>
+					</div>
+					<button class="button ui" id="newgame">Next Round</button>
+					<select class="ui" id="language">
+						<option>english</option>
+					</select>
+					<select class="ui" id="letter-count">
+						<option value="6">6 letters</option>
+					</select>
+					<button class="creditsbutton ui" id="upgrade"><img class="credits" src="img/credits.half.res.png" /><div class="creditslabel">Upgrade</div></button>
+					<div id="progressbar"></div>
+				</div>
+			</div>
+			<div class="center">
+				<table class="center">
+					<tr id="letters" class="guess">
+						<td class="letter-guess">j</td>
+						<td class="letter-guess">u</td>
+						<td class="letter-guess">m</td>
+						<td class="letter-guess">b</td>
+						<td class="letter-guess">e</td>
+						<td class="letter-guess">l</td>
+						<td class="letter-guess">a</td>
+						<td class="letter-guess">y</td>
+						<td class="letter-guess">a</td>
+					</tr>
+				</table>
+			</div>
+			<div class="center">
+				<table class="center">
+					<tr id="guess" class="guess"></tr>
+				</table>
+			</div>
+			<div class="center guess_button">
+				<button class="button ui" id="guess_button">Guess Word!</button>
+			</div>
+			<table class="center">
+				<tr id="correct" valign='top'>
+					<td>
+						<table>
+							<tr>
+								<td class="letter-guess tiny">a</td>
+								<td class="letter-guess tiny">n</td>
+								<td class="solution tiny">a</td>
+								<td class="solution tiny">n</td>
+								<td class="solution tiny">a</td>
+								<td class="solution tiny">g</td>
+								<td class="solution tiny">r</td>
+								<td class="solution tiny">a</td>
+								<td class="solution tiny">m</td>
+								<td class="letter-guess tiny">g</td>
+								<td class="letter-guess tiny">a</td>
+								<td class="letter-guess tiny">m</td>
+								<td class="letter-guess tiny">e</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+			<div class="center">
+				<table class="center">
+					<tr>
+						<td class="tiny-button" id="about_button">About</td>
+						<td class="tiny-button" id="bug_report">Report a Bug</td>
+					</tr>
+				</table>
+			<div>
+		<div>
+		<!-- Dialogs -->
+		<!-- Your browser is unsupported -->
+		<div id="unsupported" title="Browser Unsupported">
+			<p>I'm sorry, your browser does not support WebSockets. Currently the following browsers support this technology:
+				<ul>
+					<li><a href="http://www.google.com/chrome/">Google Chrome</a></li>
+					<li><a href="http://www.apple.com/safari/download/">Apple Safari</a></li>
+					<li><a href="http://www.mozilla.com/en-US/firefox/beta/">Firefox 4 Beta</a></li>
+				</ul>
+			</p>
+		</div>
+		<!-- About the game -->
+		<div id="about" title="About the Game">
+			<p>The object of the game is to form as many valid words from the letters given. Your points accumulate and the game continues while you can guess at least one word using all the provided letters.</p>
+		</div>
+		<!-- Report a bug -->
+		<div id="bug" title="Report a Bug">
+			<p>Developers a people, too, and once in a great while, we make mistakes. Help us improve the game by telling us when something's wrong. From a word that's not included as valid, to the interface getting whacky, let us know!</p>
+			<label for="message">Brief description:</label>
+			<textarea rows="2" cols="32" name="message" id="message" ></textarea>
+			<button id="submit_report">Submit</button>
+		</div>
+		<!-- Received an error message -->
+		<div id="error" title="Error!">
+			<p id="error_message"></p>
+		</div>
+		<!-- End dialogs -->
+	</body>
+</html>
